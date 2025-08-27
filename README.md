@@ -1,36 +1,24 @@
 # PyFaceTemplate
 
-A Python tool for ArcFace-based facial feature extraction and template generation with GPU support.
+**PyFaceTemplate** is a Python tool for extracting face embeddings (templates) using [InsightFace](https://github.com/deepinsight/insightface) models.  
+It supports face detection, face alignment, and embedding generation, with optional GPU acceleration for faster processing.
+
+---
 
 ## Features
 
-- Face detection using SCRFD models
-- Facial feature extraction using ArcFace models
-- Parallel processing of images
-- Support for saving cropped face images
-- Simple command-line interface
+- Face detection using **SCRFD** models  
+- Face alignment with keypoints or bounding-box fallback  
+- Facial feature extraction using **ArcFace/ONNX** models  
+- Built-in support for the **buffalo_l** model (auto-downloaded if not provided)  
+- Option to use custom ONNX models from a local `models/` folder  
+- Save aligned cropped face images (default **112×112**, configurable) alongside embeddings  
+- Multi-threaded and multi-GPU support for large datasets  
+- Command-line interface with configurable options  
 
-## Directory Structure
+---
 
-```
-PyFaceTemplate/
-├── models/            # Pre-trained models (optional for custom models)
-├── sample/            # Sample images
-│   ├── Hanks.jpg
-│   ├── Pikachu.png
-│   └── Stallone.jpg
-├── src/               # Source code
-│   └── face_extractor.py
-├── utils/             # Utility scripts
-│   └── visualize.py           # Visualization tool
-├── extract_faces.py   # Main script
-├── requirements.txt   # Dependencies
-└── README.md          # This file
-```
-
-## Step-by-Step Guide
-
-### 1. Installation
+## Installation
 
 1. Clone this repository:
    ```bash
@@ -43,59 +31,65 @@ PyFaceTemplate/
    pip install -r requirements.txt
    ```
 
-### 2. Model Setup
+### Model Setup
 
-The tool uses two types of models:
-- **Detection model**: Identifies faces in images
-- **Recognition model**: Extracts facial features (templates)
+PyFaceTemplate requires two types of models:
+- **Detection model**: Finds faces in the image (e.g., scrfd_10g_gnkps.onnx)
+- **Recognition model**: Extracts embeddings (e.g., glintr100.onnx or the built-in buffalo_l)
 
-By default, the tool uses the built-in `buffalo_l` model from InsightFace, which will be automatically downloaded to your home directory (~/.insightface/models/) when first used.
+**Using built-in models**
+If you don’t provide models, InsightFace will automatically download buffalo_l into:
+   ```bash
+   ~/.insightface/models/
+   ```
 
-**Optional**: If you want to use custom models:
-1. Create a `models` directory if it doesn't exist
-2. Download ONNX model files from trusted sources
-3. Place them in the `models` directory with appropriate names (e.g., `scrfd_10g_gnkps.onnx` for detection)
+**Using custom models**: 
+If you want to use your own models:
+1. Create a models directory in the repo root
+2. Place .onnx files into the models/ directory, for example:
+   ```bash
+   PyFaceTemplate/models/
+   ├── scrfd_10g_gnkps.onnx
+   └── glintr100.onnx
+    ```
+3. Run with the --models-dir ./models option
 
-### 3. Extract Face Templates
+### Extract Face Templates
 
-To process images and extract facial templates:
+**Basic usage::**
+   ```bash
+   # Process sample images with default settings (uses buffalo_l)
+   python extract_faces.py
 
-```bash
-python extract_faces.py -d /path/to/images -o /path/to/output
-```
+   # Process your own images and save cropped faces
+   python extract_faces.py -d ./my_images -o ./my_results --save-crops
 
-**Examples:**
+   # Use multiple threads for faster processing
+   python extract_faces.py -d ./my_images --threads 8
 
-```bash
-# Process sample images with default settings
-python extract_faces.py
+   # Use custom models
+   python extract_faces.py --detection-model scrfd_10g_gnkps --recognition-model glintr100 --models-dir ./models
+   ```
 
-# Process your own images and save cropped faces
-python extract_faces.py -d ./my_images -o ./my_results --save-crops
+### Visualize Face Detection (Optional)
 
-# Use multiple threads for faster processing
-python extract_faces.py -d ./my_images --threads 8
-```
+To see detected faces with bounding boxes and landmarks:
 
-### 4. Visualize Face Detection (Optional)
+   ```bash
+   python utils/visualize.py ./sample/Hanks.jpg --output ./output/visualization.jpg
+   ```
 
-To see the detected faces with bounding boxes and landmarks:
+### Output Files
 
-```bash
-python utils/visualize.py ./sample/Hanks.jpg --output ./output/visualization.jpg
-```
+After processing, results are stored under the specified --output directory:
 
-### 5. Locate Your Results
-
-After processing, check these directories:
-
-- **Templates**: `./output/templates/*.npy` - The facial feature vectors
-- **Cropped Faces**: `./output/crops/*.jpg` - 112x112 pixel aligned face images (if --save-crops was used)
+- **Templates**: `./output/templates/*.npy` – Facial embeddings (numpy vectors)
+- **Cropped Faces**: `./output/crops/*.jpg` – Aligned face crops (default 112×112 RGB, if --save-crops is used)
 - **Summary Files**: 
-  - `./output/summary/templates.txt` - List of successfully processed images
+  - `./output/summary/templates.txt` – List of successfully processed images
   - `./output/summary/missing_templates.txt` - List of images where no face was detected
 
-### 6. Command-line Options Reference
+### Command-line Options Reference
 
 | Option | Description |
 |--------|-------------|
@@ -149,28 +143,28 @@ PyFaceTemplate supports GPU acceleration for faster processing, including multi-
 
 ### Using Built-in Models (Recommended)
 
-```bash
-# Run with built-in buffalo_l model (default)
-python extract_faces.py
-```
+   ```bash
+   # Run with built-in buffalo_l model (default)
+   python extract_faces.py
+   ```
 
 ### Using Custom Models
 
-```bash
-# Run with manually downloaded models
-python extract_faces.py --detection-model scrfd_10g_gnkps --recognition-model glintr100 --models-dir ./models
-```
+   ```bash
+   # Run with manually downloaded models
+   python extract_faces.py --detection-model scrfd_10g_gnkps --recognition-model glintr100 --models-dir ./models
+   ```
 
 ### Using GPU Acceleration for Maximum Speed
 
-```bash
-# Process a large dataset with GPU acceleration
-python extract_faces.py -d ./large_dataset -o ./results --use-gpu --threads 8
+   ```bash
+   # Process a large dataset with GPU acceleration
+   python extract_faces.py -d ./large_dataset -o ./results --use-gpu --threads 8
 
-# Use a specific GPU on a multi-GPU system
-python extract_faces.py --use-gpu --gpu-id 1
+   # Use a specific GPU on a multi-GPU system
+   python extract_faces.py --use-gpu --gpu-id 1
 
-# Process a batch of images using multiple GPUs
-python extract_faces.py -d ./large_dataset --use-gpu --num-gpus 2 --batch 16
-```
+   # Process a batch of images using multiple GPUs
+   python extract_faces.py -d ./large_dataset --use-gpu --num-gpus 2 --batch 16
+   ```
 

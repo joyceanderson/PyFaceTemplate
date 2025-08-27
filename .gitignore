@@ -1,31 +1,53 @@
-# Model files (too large for GitHub)
-*.onnx
+# -------------------------
+# Models
+# -------------------------
+models/              # local downloaded models (buffalo_l, scrfd, glintr100, etc.)
+*.onnx               # custom ONNX models you might drop in
 
-# Output directories
+# -------------------------
+# Outputs
+# -------------------------
 output/
 output*/
 
-# Python cache files
+# -------------------------
+# Python cache
+# -------------------------
 __pycache__/
 *.py[cod]
 *$py.class
 
+# -------------------------
+# Logs
+# -------------------------
+*.log
+
+# -------------------------
 # macOS system files
+# -------------------------
 .DS_Store
 .AppleDouble
 .LSOverride
 
+# -------------------------
 # Distribution / packaging
+# -------------------------
 dist/
 build/
 *.egg-info/
 
+# -------------------------
 # Virtual environments
+# -------------------------
 venv/
 env/
 ENV/
+.venv/
+.conda/
 
-# IDE specific files
+# -------------------------
+# IDE/editor junk
+# -------------------------
 .idea/
 .vscode/
 *.swp
